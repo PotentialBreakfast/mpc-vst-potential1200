@@ -4,7 +4,7 @@
 
 ![Potential1200 on the MPC (Vintage look)](docs/images/potential1200.png)
 
-*Instrument plugin · MPC OS 3.x · Gen1 and Gen2 · v1.0.1*
+*Instrument plugin · MPC OS 3.x · Gen1 and Gen2 · v1.0.2*
 
 Free and open source (MIT), made by **PotentialBreaks**. It runs inside the MPC like its own instruments, with its own touchscreen pages, Q-Link control and project recall, and no computer needed while you play.
 

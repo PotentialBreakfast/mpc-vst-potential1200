@@ -55,8 +55,9 @@
 #define HOP 441                  /* 10 ms analysis hop */
 #define SPEED45 1.35             /* 45 rpm played at 33 1/3 */
 #define WCOLS 64                 /* KIT (BREAK): waveform columns */
-#define WMARKS 19                /* waveform pictures: plain, played, playhead, pad 1-8 start, selected pad 1-8 start */
-#define WFRAMES (WMARKS * 9)     /* x 9 bar heights */
+/* waveform pictures (1.0.2): plain, played and playhead x 9 bar heights (27), then a pad's slice start (pad 1-8, plain or
+ * selected) x 3 bar heights (48): 75 in all, so the strip (75 x 150 px) stays under the skin builder's 12288 px limit */
+#define WFRAMES 75
 #define QUIET_SEC 3              /* a project opening sets every value: taps and fader moves are ignored meanwhile */
 
 /* ---------------- parameters (same order as vst/params.json) ---------------- */
@@ -1187,12 +1188,14 @@ static void wave_build(sp_t *s, bank_t *b) {
 static int wave_frame(sp_t *s, int c) {
     pthread_mutex_lock(&s->text_mx);
     int h = s->wave_h[c], mk = 0;
-    for (int k = 0; k < NP8; k++) if (s->pad_col[k] == c) { if (k == s->sel) { mk = 11 + k; break; } if (!mk) mk = 3 + k; }
+    int pk = -1, psel = 0;
+    for (int k = 0; k < NP8; k++) if (s->pad_col[k] == c) { if (k == s->sel) { pk = k; psel = 1; break; } if (pk < 0) pk = k; }
     pthread_mutex_unlock(&s->text_mx);
     int pc = __atomic_load_n(&s->ph_col, __ATOMIC_RELAXED), lo = __atomic_load_n(&s->ph_lo, __ATOMIC_RELAXED),
         hi = __atomic_load_n(&s->ph_hi, __ATOMIC_RELAXED);
     if (c == pc) mk = 2;
-    else if (!mk && lo >= 0 && c >= lo && c <= hi) mk = 1;
+    else if (pk >= 0) return 27 + ((psel * 8 + pk) * 3 + (h == 0 ? 0 : h <= 4 ? 1 : 2));
+    else if (lo >= 0 && c >= lo && c <= hi) mk = 1;
     return mk * 9 + h;
 }
 

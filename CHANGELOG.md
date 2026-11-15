@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.2 (2026-11-15)
+
+- Fixed: the break waveform's chop lines showed the wrong pad numbers (its picture strip was over the skin's size limit).
+
 ## 1.0.1 (2026-11-15)
 
 - Every break becomes a 2-bar loop starting on a kick on the 1 (a loop file on its own bar line, a long take on a random strong-beat kick); a 1-bar loop stays 1 bar.
