@@ -54,6 +54,9 @@
 #define LONG_FILE_SEC 24.0       /* longer than this: a track, a loop is cut from it */
 #define HOP 441                  /* 10 ms analysis hop */
 #define SPEED45 1.35             /* 45 rpm played at 33 1/3 */
+#define WCOLS 64                 /* KIT (BREAK): waveform columns */
+#define WMARKS 19                /* waveform pictures: plain, played, playhead, pad 1-8 start, selected pad 1-8 start */
+#define WFRAMES (WMARKS * 9)     /* x 9 bar heights */
 #define QUIET_SEC 3              /* a project opening sets every value: taps and fader moves are ignored meanwhile */
 
 /* ---------------- parameters (same order as vst/params.json) ---------------- */
@@ -75,6 +78,7 @@ enum {
     P_BREAK_NAME, P_BREAK_INFO, P_LIB_NAME, P_RANDOM_BREAK, P_PREV_BREAK, P_NEXT_BREAK, P_LIB_NEXT,
     P_CHOP, P_TEMPO, P_PLAY_BREAK, P_SHUFFLE,
     P_SPEED, P_CHARACTER, P_PADS916, P_SAVE_KIT, P_RESCAN, P_STATUS,
+    P_W0, P_W63 = P_W0 + 63,          /* KIT (BREAK): the waveform, 64 columns (display only) */
     NP
 };
 static char PKEY[NP][24];
@@ -96,6 +100,7 @@ static void init_keys(void) {
         [P_SAVE_KIT] = "save_kit", [P_RESCAN] = "rescan", [P_STATUS] = "status",
     };
     for (int i = 0; i < NP; i++) if (fixed[i]) snprintf(PKEY[i], sizeof PKEY[i], "%s", fixed[i]);
+    for (int c = 0; c < WCOLS; c++) snprintf(PKEY[P_W0 + c], 24, "w_%02d", c);
     for (int k = 0; k < NP8; k++) {
         snprintf(PKEY[P_F1 + k], 24, "fader_%d", k + 1);
         snprintf(PKEY[P_PAD1 + k], 24, "pad_%d", k + 1);
@@ -550,6 +555,7 @@ typedef struct {
     long start[NP8], len[NP8]; int nslices;
     char name[160];
 } loop_t;
+static int col_of(double f) { int c = (int)(f * WCOLS); return c < 0 ? 0 : c >= WCOLS ? WCOLS - 1 : c; }
 static void loop_free(loop_t *l) { if (l) { free(l->x); free(l); } }
 
 static void chop(loop_t *L, int mode) {
@@ -665,7 +671,7 @@ static loop_t *make_loop(const mono_t *src, const char *name, unsigned *seed, in
 /* ================================================================ the sound =========================================== */
 /* A pad's sound, ready to play. Sampled: 12-bit values at 26.04 kHz (int16, steps of 16). Clean: floats at 44.1 kHz. */
 typedef struct { int16_t *d; float *c; long n; int clean; double speed; } snd_t;
-typedef struct { snd_t s[NP8 + 1]; float bpm; int is_break; } bank_t;   /* s[8]: the whole break */
+typedef struct { snd_t s[NP8 + 1]; float bpm; int is_break; float f0[NP8 + 1], f1[NP8 + 1]; } bank_t;   /* s[8]: the whole break; f0..f1: where each pad's sound sits in the break (0..1) */
 
 static void bank_free(bank_t *b) {
     if (!b) return;
@@ -765,6 +771,11 @@ typedef struct {
     uint8_t pending[NP];             /* values the engine changed, for the screen (mpc_engine_changed) */
     time_t quiet_until;              /* after a project's state: its values, not moves (faders, knobs) */
     time_t tap_quiet_until;          /* while the plugin opens: no taps (pads, buttons) */
+    /* KIT (BREAK) waveform: heights and pad starts (worker, under text_mx); playhead (audio thread) */
+    uint8_t wave_h[WCOLS];
+    int pad_col[NP8];
+    int ph_col, ph_lo, ph_hi, ph_tick, ph_ch;
+    uint64_t ph_dirty;               /* columns whose picture changed: told to the host (mpc_engine_changed) */
     pt_theme_t theme;
     pm_manual_t manual;
 } sp_t;
@@ -830,6 +841,7 @@ static void select_pad(sp_t *s, int k) {
     if (k == s->sel) return;
     s->sel = k;
     sync_sel(s);
+    __atomic_or_fetch(&s->ph_dirty, ~0ull, __ATOMIC_RELEASE);   /* the lit pad start moves */
 }
 
 static void default_pads(sp_t *s) {
@@ -900,6 +912,7 @@ static void start_voice(sp_t *s, int padk, int ch, int vel, int semis) {
     v->gain = vel_gain(vel) * (p->level <= -40 ? 0.0f : powf(10.0f, p->level / 20.0f));
     v->fade = 1;
     voice_filter_setup(v, p);
+    if (B->is_break) s->ph_ch = ch;   /* the waveform's playhead follows the newest hit */
 }
 
 static inline float rd(const snd_t *sd, const voice_t *v, long i) {
@@ -966,15 +979,54 @@ static void take_bank(sp_t *s) {
             s->cur = s->next;
             s->next = NULL;
             for (int i = 0; i <= NP8; i++) s->v[i].on = 0;
+            s->ph_col = s->ph_lo = s->ph_hi = -1;
+            __atomic_or_fetch(&s->ph_dirty, ~0ull, __ATOMIC_RELEASE);
             pthread_mutex_unlock(&s->xfer_mx);
             pthread_mutex_lock(&s->mx); pthread_cond_signal(&s->cv); pthread_mutex_unlock(&s->mx);
         } else pthread_mutex_unlock(&s->xfer_mx);
     }
 }
 
+/* where the newest break hit is in the break, 0..1 (-1: nothing playing); with the played run's start in *from */
+static double play_pos(const sp_t *s, double *from) {
+    const bank_t *B = s->cur;
+    if (!B || !B->is_break) return -1;
+    const voice_t *v = &s->v[s->ph_ch];
+    if (!v->on || !v->snd || v->snd->n <= 0) return -1;
+    int k = v->pad;
+    double n = (double)v->snd->n, x = v->st ? v->gpos : v->ph;
+    if (x < v->a) x = v->a;
+    if (x > v->b) x = v->b;
+    double a = v->a, b = v->b;
+    if (v->rev) { x = a + b - x; double t = a; a = b; b = t; }
+    double f0 = B->f0[k], w = B->f1[k] - B->f0[k];
+    *from = f0 + a / n * w;
+    return f0 + x / n * w;
+}
+/* about 43 times a second: when the playhead moves, only the columns whose picture changed are reported */
+static void wave_tick(sp_t *s, int frames) {
+    if ((s->ph_tick += frames) < 1024) return;
+    s->ph_tick = 0;
+    double from = 0, x = play_pos(s, &from);
+    int col = -1, lo = -1, hi = -1;
+    if (x >= 0) { col = col_of(x); int fc = col_of(from); lo = fc < col ? fc : col; hi = fc < col ? col : fc; }
+    if (col == s->ph_col && lo == s->ph_lo && hi == s->ph_hi) return;
+    uint64_t d = 0;
+    for (int c = 0; c < WCOLS; c++) {
+        int was = c == s->ph_col ? 2 : (s->ph_lo >= 0 && c >= s->ph_lo && c <= s->ph_hi) ? 1 : 0;
+        int now = c == col ? 2 : (lo >= 0 && c >= lo && c <= hi) ? 1 : 0;
+        if (was != now) d |= 1ull << c;
+    }
+    __atomic_store_n(&s->ph_col, col, __ATOMIC_RELAXED);
+    __atomic_store_n(&s->ph_lo, lo, __ATOMIC_RELAXED);
+    __atomic_store_n(&s->ph_hi, hi, __ATOMIC_RELAXED);
+    __atomic_or_fetch(&s->ph_dirty, d, __ATOMIC_RELEASE);
+}
+
 static void render(void *inst, int16_t *out, int frames) {
     sp_t *s = inst;
     take_bank(s);
+    wave_tick(s, frames);
     const double tick = SP_RATE / FS;
     for (int n = 0; n < frames; n++) {
         s->clk += tick;
@@ -1024,6 +1076,47 @@ static void publish(sp_t *s, bank_t *b) {
     pthread_mutex_unlock(&s->xfer_mx);
 }
 
+/* KIT (BREAK): the waveform (64 column heights, 0..8) and where each pad's slice starts; and in the bank, where each pad's
+ * sound sits in the break, so the audio thread can draw the playhead */
+static void wave_build(sp_t *s, bank_t *b) {
+    uint8_t h[WCOLS] = {0}; int pc[NP8];
+    for (int k = 0; k < NP8; k++) pc[k] = -1;
+    b->f0[NP8] = 0; b->f1[NP8] = 1;
+    const loop_t *L = s->loop;
+    if (b->is_break && L && L->n > 0 && L->nslices) {
+        float pk[WCOLS] = {0}, mx = 0;
+        for (int c = 0; c < WCOLS; c++) {
+            long i0 = (long)((double)L->n * c / WCOLS), i1 = (long)((double)L->n * (c + 1) / WCOLS);
+            for (long i = i0; i < i1; i++) { float a = fabsf(L->x[i]); if (a > pk[c]) pk[c] = a; }
+            if (pk[c] > mx) mx = pk[c];
+        }
+        for (int c = 0; c < WCOLS; c++)
+            if (mx > 0 && pk[c] > 0.002f) { int v = (int)ceilf(8.0f * powf(pk[c] / mx, 0.75f)); h[c] = v < 1 ? 1 : v > 8 ? 8 : v; }
+        for (int k = 0; k < NP8; k++) {
+            int sl = s->pad[k].slice % L->nslices;
+            b->f0[k] = (float)((double)L->start[sl] / L->n);
+            b->f1[k] = (float)((double)(L->start[sl] + L->len[sl]) / L->n);
+            pc[k] = col_of(b->f0[k]);
+        }
+    } else for (int k = 0; k < NP8; k++) { b->f0[k] = 0; b->f1[k] = 1; }
+    pthread_mutex_lock(&s->text_mx);
+    memcpy(s->wave_h, h, sizeof h); memcpy(s->pad_col, pc, sizeof pc);
+    pthread_mutex_unlock(&s->text_mx);
+    __atomic_or_fetch(&s->ph_dirty, ~0ull, __ATOMIC_RELEASE);
+}
+/* a waveform column's picture: mark * 9 + height (see WMARKS) */
+static int wave_frame(sp_t *s, int c) {
+    pthread_mutex_lock(&s->text_mx);
+    int h = s->wave_h[c], mk = 0;
+    for (int k = 0; k < NP8; k++) if (s->pad_col[k] == c) { if (k == s->sel) { mk = 11 + k; break; } if (!mk) mk = 3 + k; }
+    pthread_mutex_unlock(&s->text_mx);
+    int pc = __atomic_load_n(&s->ph_col, __ATOMIC_RELAXED), lo = __atomic_load_n(&s->ph_lo, __ATOMIC_RELAXED),
+        hi = __atomic_load_n(&s->ph_hi, __ATOMIC_RELAXED);
+    if (c == pc) mk = 2;
+    else if (!mk && lo >= 0 && c >= lo && c <= hi) mk = 1;
+    return mk * 9 + h;
+}
+
 /* every pad's sound again, from the decoded sources (one-shots) or the break's slices */
 static void rebuild(sp_t *s) {
     bank_t *b = calloc(1, sizeof *b);
@@ -1050,6 +1143,7 @@ static void rebuild(sp_t *s) {
         if (clean) sample_clean(s->loop->x, s->loop->n, FS, &b->s[NP8]);
         else sample_sp(s->loop->x, s->loop->n, FS, speed, &b->s[NP8]);
     }
+    wave_build(s, b);
     publish(s, b);
 }
 
@@ -1437,7 +1531,7 @@ static void set_param(void *inst, const char *key, const char *val) {
     if (!strcmp(key, "lfo_bpm")) { s->host_bpm = (float)atof(val); return; }
     if (!strcmp(key, "state")) { s->quiet_until = s->tap_quiet_until = time(NULL) + QUIET_SEC; restore(s, val); return; }
     int i = find(key);
-    if (i < 0) return;
+    if (i < 0 || (i >= P_W0 && i <= P_W63)) return;   /* the waveform is display only */
     float v = (float)atof(val);
     time_t now = time(NULL);
     int press = v > 0.5f, quiet = now < s->quiet_until, tapq = now < s->tap_quiet_until;
@@ -1551,6 +1645,13 @@ static void set_param(void *inst, const char *key, const char *val) {
 int mpc_engine_changed(void *inst, char *key, int len) {
     sp_t *s = inst;
     for (int i = 0; i < NP; i++) if (s->pending[i]) { s->pending[i] = 0; snprintf(key, len, "%s", PKEY[i]); return 1; }
+    uint64_t d = __atomic_load_n(&s->ph_dirty, __ATOMIC_ACQUIRE);
+    if (d && (int)s->p[P_SOURCE] == SRC_BREAK) {   /* a waveform column that changed */
+        int c = __builtin_ctzll(d);
+        __atomic_and_fetch(&s->ph_dirty, ~(1ull << c), __ATOMIC_ACQ_REL);
+        snprintf(key, len, "w_%02d", c);
+        return 1;
+    }
     return 0;
 }
 
@@ -1590,6 +1691,13 @@ static int get_param(void *inst, const char *key, char *buf, int buf_len) {
     if (kl > 3 && !strcmp(key + kl - 3, "_on") && !strncmp(key, "pad_", 4)) {
         int k = atoi(key + 4) - 1;
         return snprintf(buf, buf_len, "%d", k == s->sel);
+    }
+    if (key[0] == 'w' && key[1] == '_' && isdigit((unsigned char)key[2]) && isdigit((unsigned char)key[3]) && !key[4]) {
+        int c = (key[2] - '0') * 10 + (key[3] - '0');   /* a waveform column: its picture as a value 0..1 */
+        if (c >= WCOLS) return 0;
+        int f = wave_frame(s, c);
+        double v = f >= WFRAMES - 1 ? 1.0 : (f + 0.25) / (WFRAMES - 1);
+        return snprintf(buf, buf_len, "%.5f", v);
     }
     int i = find(key);
     if (i < 0) return 0;

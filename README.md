@@ -32,7 +32,7 @@ Every sound goes through the same steps the old machine used:
 - **PROGRAM**: everything for the selected pad: tune, decay, level, cutoff, filter type, **STRETCH**, **REVERSE**, choke group, and **START** / **END** trim.
 - **KIT**: where the sounds come from.
   - **ONE-SHOTS**: each pad has a type (kick, snare, hat, open hat, clap, perc, tom, cymbal). The arrows step through sounds of that type, and **L** locks a pad.
-  - **BREAK**: a break from your library cut across the 8 pads, **ON THE BEAT** or **ON THE HITS**. **TEMPO** plays it **AS IS**, matched to your project the old way (**MATCH (TUNE)**: faster is higher), or with **MATCH (STRETCH)** to keep the pitch. **RANDOM BREAK**, **PREV**, **NEXT**, **LIBRARY**, **PLAY WHOLE BREAK** and **SHUFFLE PADS** are there too.
+  - **BREAK**: a break from your library cut across the 8 pads, **ON THE BEAT** or **ON THE HITS**. The waveform shows where each pad's chop starts (numbered lines, the selected pad lit) and a playhead runs along it as you play. **TEMPO** plays it **AS IS**, matched to your project the old way (**MATCH (TUNE)**: faster is higher), or with **MATCH (STRETCH)** to keep the pitch. **RANDOM BREAK**, **PREV**, **NEXT**, **LIBRARY**, **PLAY WHOLE BREAK** and **SHUFFLE PADS** are there too.
   - **NEW KIT** puts new sounds on every unlocked pad. **ROLL** changes sounds and settings: **MILD**, **MEDIUM** or **WILD**. **UNLOCK ALL** frees every pad.
 - **SETUP**: sample speed (33 or 45 > 33), character (12-bit or clean), pads 9-16, **SAVE KIT**, **RESCAN**, and the **LOOK**.
 - **MANUAL**: the manual on the MPC's screen.

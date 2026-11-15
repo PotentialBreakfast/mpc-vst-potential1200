@@ -93,27 +93,43 @@ def recolour_svg(src, own):
 
 
 def wave_strip(own, path):
-    """The waveform column pictures (18 x 200, 36 of them stacked): 9 bar heights x plain / cue / selected cue / playing now."""
+    """Potential1200's break waveform column pictures (14 x 150, 171 stacked): 9 bar heights x 19 marks: plain, played
+    (the run from where the hit started to the playhead), the playhead, the start of pad 1-8's slice (a line and the pad
+    number in drum-machine segments), and the same for the selected pad (lit)."""
     from PIL import Image, ImageDraw
-    k, w, h = 4, 18, 200
+    k, w, h = 4, 14, 150
     rgb = lambda c: tuple(int(c[i:i + 2], 16) for i in (0, 2, 4)) + (255,)
-    strip = Image.new("RGBA", (w, h * 36))
-    for mark in range(4):
+    SEG = {1: "bc", 2: "abged", 3: "abgcd", 4: "fgbc", 5: "afgcd", 6: "afgedc", 7: "abc", 8: "abcdefg"}
+
+    def digit(d, n, x, y, sw, sh, t, col):   # a 7-segment number, top-left (x, y), sw x sh, stroke t
+        P = {"a": (x, y, x + sw, y + t), "g": (x, y + sh // 2 - t // 2, x + sw, y + sh // 2 + t - t // 2),
+             "d": (x, y + sh - t, x + sw, y + sh), "f": (x, y, x + t, y + sh // 2), "b": (x + sw - t, y, x + sw, y + sh // 2),
+             "e": (x, y + sh // 2, x + t, y + sh), "c": (x + sw - t, y + sh // 2, x + sw, y + sh)}
+        for seg in SEG[n]:
+            d.rectangle(P[seg], fill=col)
+
+    strip = Image.new("RGBA", (w, h * 171))
+    for mark in range(19):
+        sel = mark >= 11
         for lvl in range(9):
-            im = Image.new("RGBA", (w * k, h * k), rgb(own["w_selbg"] if mark == 2 else own["m_bg"]))
+            im = Image.new("RGBA", (w * k, h * k), rgb(own["w_selbg"] if sel else own["m_bg"]))
             d = ImageDraw.Draw(im)
-            bar = rgb(own["w_sel"] if mark == 2 else own["w_bar"])
+            bar = rgb(own["w_sel"] if mark in (1, 2) or sel else own["w_bar"])
+            mid = 82
             if lvl == 0:
-                d.rectangle([3 * k, 100 * k - 2, 15 * k, 100 * k + 1], fill=rgb(own["m_off"]))
+                d.rectangle([2 * k, mid * k - 2, 12 * k, mid * k + 1], fill=rgb(own["w_sel"] if mark == 1 else own["m_off"]))
             else:
-                half = max(5, lvl * 95 // 8)
-                d.rounded_rectangle([3 * k, (100 - half) * k, 15 * k - 1, (100 + half) * k], radius=3 * k, fill=bar)
-            if mark in (1, 2):
-                line = rgb(own["w_sel"] if mark == 2 else own["w_cue"])
-                d.rectangle([0, 0, 3 * k - 1, h * k], fill=line)
-                d.polygon([(0, 0), (11 * k, 0), (0, 11 * k)], fill=line)
-            elif mark == 3:
-                d.rectangle([7 * k, 0, 10 * k - 1, h * k], fill=(255, 255, 255, 255))
+                half = max(3, lvl * 62 // 8)
+                d.rounded_rectangle([3 * k, (mid - half) * k, 11 * k - 1, (mid + half) * k], radius=2 * k, fill=bar)
+            if mark == 2:   # the playhead: a white line with notches
+                white = (255, 255, 255, 255)
+                d.rectangle([6 * k, 0, 8 * k - 1, h * k], fill=white)
+                d.polygon([(2 * k, 0), (12 * k, 0), (7 * k, 6 * k)], fill=white)
+                d.polygon([(2 * k, h * k), (12 * k, h * k), (7 * k, h * k - 6 * k)], fill=white)
+            elif mark >= 3:   # a pad's slice starts here: a line and its number
+                col = rgb(own["w_sel"] if sel else own["w_cue"])
+                d.rectangle([0, 0, 2 * k - 1, h * k], fill=col)
+                digit(d, (mark - 3) % 8 + 1, 4 * k, 2 * k, 8 * k, 13 * k, 2 * k, col)
             strip.paste(im.resize((w, h), Image.LANCZOS), (0, (mark * 9 + lvl) * h))
     strip.save(path)
 
