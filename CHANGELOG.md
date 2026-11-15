@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.1 (2026-11-15)
+
+- Every break becomes a 2-bar loop starting on a kick on the 1 (a loop file on its own bar line, a long take on a random strong-beat kick); a 1-bar loop stays 1 bar.
+- Loop tempo from the file's length in whole bars when the name has none.
+- PERFORM: room between the display and the TUNE / DECAY / LEVEL / FILTER keys.
+
 ## 1.0.0 (2026-11-15)
 
 First release.

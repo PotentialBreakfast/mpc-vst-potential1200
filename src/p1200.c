@@ -604,6 +604,87 @@ static void chop(loop_t *L, int mode) {
 }
 
 /* the loop from a decoded file (resampled to 44.1 kHz mono): whole for a loop, a random 2-bar window of a track */
+/* the kick drum's onsets: the rise in low-band energy (two one-pole low-passes at about 110 Hz), one value per hop */
+static float *kick_env(const float *x, long n, int *nh) {
+    int H = (int)(n / HOP);
+    *nh = H;
+    if (H < 4) return NULL;
+    float *e = calloc((size_t)H, sizeof *e), *o = calloc((size_t)H, sizeof *o);
+    if (!e || !o) { free(e); free(o); return NULL; }
+    const float a = 1.0f - expf(-2.0f * (float)M_PI * 110.0f / FS);
+    float l1 = 0, l2 = 0;
+    for (int h = 0; h < H; h++) {
+        double acc = 0;
+        for (int i = 0; i < HOP; i++) { l1 += a * (x[(long)h * HOP + i] - l1); l2 += a * (l1 - l2); acc += (double)l2 * l2; }
+        e[h] = logf((float)(acc / HOP) + 1e-9f);
+    }
+    float top = -1e9f;
+    for (int h = 0; h < H; h++) if (e[h] > top) top = e[h];
+    for (int h = 0; h < H; h++) {   /* a rise, counted only where the low end gets loud (a kick, not a snare's thump) */
+        float before = h >= 2 ? e[h - 2] : top - 12.0f;   /* before the file: silence, so a kick right at the start counts */
+        float d = e[h] - before, loud = e[h] - (top - 6.0f);
+        o[h] = d > 0 && loud > 0 ? d * loud : 0;
+    }
+    free(e);
+    return o;
+}
+static float peak_near(const float *v, int H, double h) {
+    int c = (int)lround(h); float m = 0;
+    for (int i = c - 2; i <= c + 2; i++) if (i >= 0 && i < H && v[i] > m) m = v[i];
+    return m;
+}
+/* Where a 2-bar loop should start: on a kick that sounds like the 1 of a bar (kicks on beats 1 and 3, hits on the beat
+ * grid). best: the most likely one; otherwise a random one of the good ones (a long track: a different part each time).
+ * -1 when there is no room for `beats` beats. */
+static long downbeat(const float *x, long n, double bpm, int beats, int best, unsigned *seed, long grid0, long gridbar) {
+    int H = 0, H2 = 0;
+    float *k = kick_env(x, n, &H), *o = onset_env(x, n, &H2);
+    if (!k || !o) { free(k); free(o); return -1; }
+    double B = 60.0 / bpm * FS / HOP;                     /* hops per beat */
+    int need = (int)(beats * B) - 3;                      /* the loop must fit, give or take 30 ms */
+    float kmax = 0;
+    for (int h = 0; h < H; h++) if (k[h] > kmax) kmax = k[h];
+    static const float W[8] = {2.0f, 0, 1.0f, 0, 1.6f, 0, 1.0f, 0};
+    int nc = 0, cap = 512; int *ch = malloc(cap * sizeof *ch); float *sc = malloc(cap * sizeof *sc);
+    float top = 0;
+    for (int h = 0; ch && sc && kmax > 0 && h + need < H; h++) {
+        if (k[h] < 0.25f * kmax) continue;
+        int lmax = 1;
+        for (int i = h - 3; i <= h + 3; i++) if (i >= 0 && i < H && k[i] > k[h]) lmax = 0;
+        if (!lmax) continue;
+        if (gridbar > 0) {   /* a loop file starts on the 1: only its bar lines */
+            double bpos = ((double)h * HOP - grid0) / gridbar;
+            if (fabs(bpos - lround(bpos)) * gridbar > 5 * HOP) continue;
+        }
+        float v = 0;
+        for (int b = 0; b < 8; b++) v += W[b] * peak_near(k, H, h + b * B) / kmax + 0.3f * peak_near(o, H2, h + b * B);
+        v -= 0.002f * h / (float)B;                        /* a whole loop: the one nearest the start wins a tie */
+        if (nc == cap) { cap *= 2; int *a = realloc(ch, cap * sizeof *ch); float *b2 = realloc(sc, cap * sizeof *sc); if (!a || !b2) { if (a) ch = a; if (b2) sc = b2; break; } ch = a; sc = b2; }
+        ch[nc] = h; sc[nc] = v; nc++;
+        if (v > top) top = v;
+    }
+    long at = -1;
+    if (nc) {
+        int pick = -1;
+        if (best) { for (int c = 0; c < nc; c++) if (sc[c] >= 0.85f * top) { pick = c; break; } }   /* the earliest strong one */
+        else {
+            int good = 0;
+            for (int c = 0; c < nc; c++) good += sc[c] >= 0.8f * top;
+            *seed = *seed * 1664525u + 1013904223u;
+            int want = (int)((*seed >> 8) % (unsigned)good);
+            for (int c = 0; c < nc; c++) if (sc[c] >= 0.8f * top && want-- == 0) { pick = c; break; }
+        }
+        at = (long)ch[pick] * HOP - 2 * HOP;               /* the kick's rise is found a little late: start just before it */
+        for (long i = at < 0 ? 0 : at, e = at + 3 * HOP; i < e && i < n; i++) if (fabsf(x[i]) > 0.02f) { at = i - 88; break; }
+        if (at < 0) at = 0;
+    }
+    free(ch); free(sc); free(k); free(o);
+    return at;
+}
+
+/* The loop from a decoded file (resampled to 44.1 kHz mono): always 2 bars that start on a kick on the 1, so the 8 pads
+ * get 8 even beats whatever the file's length. A loop file gets its best 2 bars (a 1-bar loop stays 1 bar); a long track
+ * (a whole song or drum-library take) a random good 2 bars. */
 static loop_t *make_loop(const mono_t *src, const char *name, unsigned *seed, int mode) {
     long n44 = (long)((double)src->n * FS / src->rate);
     if (n44 < FS / 4) return NULL;
@@ -620,43 +701,41 @@ static loop_t *make_loop(const mono_t *src, const char *name, unsigned *seed, in
     snprintf(L->name, sizeof L->name, "%s", name);
     char *dot = strrchr(L->name, '.');
     if (dot) *dot = 0;
-    int H = 0;
-    float *o = onset_env(x, n44, &H);
+    int track = (double)n44 / FS > LONG_FILE_SEC;
     float bpm = bpm_from_name(name);
-    long start = 0, len = n44;
-    if ((double)n44 / FS <= LONG_FILE_SEC) {
-        for (long i = 0; i < n44 && i < 3 * FS; i++) if (fabsf(x[i]) > 0.0056f) { start = i - 88; break; }
-        if (start < 0) start = 0;
-        len = n44 - start;
-        if (!bpm) bpm = detect_bpm(o, H);
-        if (bpm > 0) {
-            double beats = (double)len / FS * bpm / 60.0;
-            int b4 = (int)lround(beats / 4.0);
-            if (b4 >= 1) {
-                double exact = b4 * 4.0 * 60.0 * FS / len;
-                if (fabs(exact - bpm) / bpm < 0.04) bpm = (float)exact;
-                L->bars = b4;
-            }
-        }
-        if (bpm <= 0) bpm = 95;
-        if (!L->bars) L->bars = 1;
-    } else {
-        if (!bpm) bpm = detect_bpm(o, H);
-        if (bpm <= 0) bpm = 95;
-        long want = (long)(2 * 4 * 60.0 / bpm * FS);
-        if (want > n44) want = n44;
-        long last = n44 - want;
-        for (int tries = 0; o && tries < 400; tries++) {
-            *seed = *seed * 1664525u + 1013904223u;
-            long cand = (long)((*seed >> 8) % (unsigned)(last / HOP + 1));
-            if (cand < H && o[cand] > 1.0f) { start = cand * HOP - 88; break; }
-        }
-        if (start < 0) start = 0;
-        if (start > last) start = last;
-        len = want;
-        L->bars = 2;
+    long lead = 0;   /* a loop file: skip silence at the front before measuring it */
+    if (!track) {
+        for (long i = 0; i < n44 && i < 3 * FS; i++) if (fabsf(x[i]) > 0.0056f) { lead = i - 88; break; }
+        if (lead < 0) lead = 0;
     }
-    free(o);
+    float named = bpm;
+    if (!bpm) {
+        int H = 0;
+        float *o = onset_env(x, n44, &H);
+        bpm = detect_bpm(o, H);
+        free(o);
+    }
+    if (!track) {   /* a loop is a whole number of bars (1, 2, 4 or 8): the tempo that fits its length, nearest the measured one */
+        double len = (double)(n44 - lead) / FS, want = bpm > 0 ? bpm : 100, bestb = 0;
+        for (int b = 1; b <= 8; b *= 2) {
+            double t = b * 4 * 60.0 / len;
+            if (t < 60 || t > 190) continue;
+            if (!bestb || fabs(log(t / want)) < fabs(log(bestb / want))) bestb = t;
+        }
+        if (bestb && (!named || fabs(bestb - named) / named < 0.04)) bpm = (float)bestb;
+    }
+    if (bpm <= 0) bpm = 95;
+    long bar = (long)(4 * 60.0 / bpm * FS);
+    int bars = 2;
+    long gb = track ? 0 : bar, start = -1;
+    for (int pass = 0; pass < 2 && start < 0; pass++, gb = 0) {   /* a loop file: its bar lines first; then any kick */
+        bars = 2; start = downbeat(x, n44, bpm, 8, !track, seed, lead, gb);
+        if (start < 0) { bars = 1; start = downbeat(x, n44, bpm, 4, !track, seed, lead, gb); }   /* only room for 1 bar */
+    }
+    long len = (long)bars * bar;
+    if (start < 0) { start = lead; len = n44 - lead; bars = 1; }                       /* shorter than a bar: as it is */
+    if (start + len > n44) len = n44 - start;
+    L->bars = bars;
     L->bpm = bpm;
     L->n = len;
     L->x = malloc((size_t)len * sizeof(float));

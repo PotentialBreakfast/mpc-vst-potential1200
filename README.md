@@ -4,7 +4,7 @@
 
 ![Potential1200 on the MPC (Vintage look)](docs/images/potential1200.png)
 
-*Instrument plugin · MPC OS 3.x · Gen1 and Gen2 · v1.0.0*
+*Instrument plugin · MPC OS 3.x · Gen1 and Gen2 · v1.0.1*
 
 Free and open source (MIT), made by **PotentialBreaks**. It runs inside the MPC like its own instruments, with its own touchscreen pages, Q-Link control and project recall, and no computer needed while you play.
 
@@ -52,6 +52,8 @@ You don't have to type any paths.
 1. **A `DRUM ONE SHOTS` folder** at the top of any drive. **MPC TOOLS** makes one for you from every sound on your MPC with **MAKE DRUM FOLDER** (Plugins tab), sorted into Kicks, Snares, Hats and so on.
 2. **Folders you list yourself** in `Potential1200/folders.txt` on a drive, one per line (a full path, or a folder on that drive).
 3. Otherwise, the **drum sounds in your Expansions and Samples** folders, picked out by name.
+
+**Breaks** are cut to **2 bars starting on a kick on the 1**, so they spread evenly across the 8 pads whatever the file's length: a loop file from its own first bar, a long drum take or song from a random strong kick (a different part each time). A 1-bar loop stays 1 bar. Put the tempo in the name (`... 96bpm.wav`) for an exact tempo; otherwise a loop's tempo comes from its length.
 
 **Breaks**: a folder called **`DRUM BREAKS LIBRARY`** at the top of a drive, or any top-level folder with "break" in its name. Each sub-folder is a library you can step through with **LIBRARY**.
 
