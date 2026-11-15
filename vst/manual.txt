@@ -22,7 +22,7 @@ ONE-SHOTS: a DRUM ONE SHOTS folder on any drive (MPC TOOLS makes one with MAKE D
 listed in Potential1200/folders.txt, else the drum sounds in your Expansions and Samples.
 - Each pad has a type (KICK, SNARE, HAT ...). Its arrows step through that type. L locks the pad.
 - NEW KIT: new sounds on every unlocked pad. ROLL: MILD, MEDIUM or WILD changes to sounds and settings.
-BREAK: a break from your DRUM BREAKS LIBRARY, cut into 8 on the beat or on the hits.
+BREAK: 2 bars of a break from your DRUM BREAKS LIBRARY, from a kick on the 1, cut into 8 on the beat or on the hits.
 - TEMPO: AS IS, MATCH (TUNE) the old way (faster is higher), or MATCH (STRETCH) to keep the pitch.
 
 = SETUP
