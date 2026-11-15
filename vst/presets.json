@@ -1,0 +1,7 @@
+{
+ "presets": [
+  {"name": "Classic 12-Bit", "values": {"speed": "33", "character": "12 BIT 26 kHz", "mode": "TUNE", "pads916": "MULTI PITCH"}},
+  {"name": "45 Trick", "values": {"speed": "45 > 33", "character": "12 BIT 26 kHz", "mode": "TUNE", "pads916": "MULTI PITCH"}},
+  {"name": "Clean", "values": {"speed": "33", "character": "CLEAN", "mode": "TUNE", "pads916": "MULTI PITCH"}}
+ ]
+}

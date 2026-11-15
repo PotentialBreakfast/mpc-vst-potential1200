@@ -1,0 +1,781 @@
+{
+  "name": "Potential1200",
+  "params": [
+    {
+      "key": "unused",
+      "name": "(unused)",
+      "type": "trigger",
+      "momentary": true,
+      "legacy": true
+    },
+    {
+      "key": "mode",
+      "name": "Fader Mode",
+      "options": [
+        "TUNE",
+        "DECAY",
+        "LEVEL",
+        "FILTER"
+      ],
+      "default": 0,
+      "refresh_display": true
+    },
+    {
+      "key": "fader_1",
+      "name": "Fader 1",
+      "min": 0,
+      "max": 1,
+      "default": 0.5,
+      "dynamic_display": true
+    },
+    {
+      "key": "fader_2",
+      "name": "Fader 2",
+      "min": 0,
+      "max": 1,
+      "default": 0.5,
+      "dynamic_display": true
+    },
+    {
+      "key": "fader_3",
+      "name": "Fader 3",
+      "min": 0,
+      "max": 1,
+      "default": 0.5,
+      "dynamic_display": true
+    },
+    {
+      "key": "fader_4",
+      "name": "Fader 4",
+      "min": 0,
+      "max": 1,
+      "default": 0.5,
+      "dynamic_display": true
+    },
+    {
+      "key": "fader_5",
+      "name": "Fader 5",
+      "min": 0,
+      "max": 1,
+      "default": 0.5,
+      "dynamic_display": true
+    },
+    {
+      "key": "fader_6",
+      "name": "Fader 6",
+      "min": 0,
+      "max": 1,
+      "default": 0.5,
+      "dynamic_display": true
+    },
+    {
+      "key": "fader_7",
+      "name": "Fader 7",
+      "min": 0,
+      "max": 1,
+      "default": 0.5,
+      "dynamic_display": true
+    },
+    {
+      "key": "fader_8",
+      "name": "Fader 8",
+      "min": 0,
+      "max": 1,
+      "default": 0.5,
+      "dynamic_display": true
+    },
+    {
+      "key": "pad_1",
+      "name": "Pad 1",
+      "type": "slot",
+      "display": "string"
+    },
+    {
+      "key": "pad_2",
+      "name": "Pad 2",
+      "type": "slot",
+      "display": "string"
+    },
+    {
+      "key": "pad_3",
+      "name": "Pad 3",
+      "type": "slot",
+      "display": "string"
+    },
+    {
+      "key": "pad_4",
+      "name": "Pad 4",
+      "type": "slot",
+      "display": "string"
+    },
+    {
+      "key": "pad_5",
+      "name": "Pad 5",
+      "type": "slot",
+      "display": "string"
+    },
+    {
+      "key": "pad_6",
+      "name": "Pad 6",
+      "type": "slot",
+      "display": "string"
+    },
+    {
+      "key": "pad_7",
+      "name": "Pad 7",
+      "type": "slot",
+      "display": "string"
+    },
+    {
+      "key": "pad_8",
+      "name": "Pad 8",
+      "type": "slot",
+      "display": "string"
+    },
+    {
+      "key": "disp",
+      "name": "Display",
+      "display": "string",
+      "default": 0,
+      "min": 0,
+      "max": 1
+    },
+    {
+      "key": "disp2",
+      "name": "Display 2",
+      "display": "string",
+      "default": 0,
+      "min": 0,
+      "max": 1
+    },
+    {
+      "key": "sel_name",
+      "name": "Selected Pad",
+      "display": "string",
+      "default": 0,
+      "min": 0,
+      "max": 1
+    },
+    {
+      "key": "sel_file",
+      "name": "Selected Sound",
+      "display": "string",
+      "default": 0,
+      "min": 0,
+      "max": 1
+    },
+    {
+      "key": "sel_info",
+      "name": "Selected Info",
+      "display": "string",
+      "default": 0,
+      "min": 0,
+      "max": 1
+    },
+    {
+      "key": "tune",
+      "name": "Tune",
+      "min": -12,
+      "max": 12,
+      "default": 0,
+      "unit": "st",
+      "display": "int"
+    },
+    {
+      "key": "decay",
+      "name": "Decay",
+      "min": 0,
+      "max": 100,
+      "default": 100,
+      "unit": "%",
+      "display": "int"
+    },
+    {
+      "key": "level",
+      "name": "Level",
+      "min": -40,
+      "max": 6,
+      "default": 0,
+      "unit": "dB"
+    },
+    {
+      "key": "cutoff",
+      "name": "Cutoff",
+      "min": 0,
+      "max": 100,
+      "default": 70,
+      "unit": "%",
+      "display": "int"
+    },
+    {
+      "key": "filter",
+      "name": "Filter",
+      "options": [
+        "DYNAMIC",
+        "FIXED",
+        "OFF"
+      ],
+      "default": 0
+    },
+    {
+      "key": "stretch",
+      "name": "Stretch",
+      "options": [
+        "Off",
+        "On"
+      ],
+      "default": 0
+    },
+    {
+      "key": "reverse",
+      "name": "Reverse",
+      "options": [
+        "Off",
+        "On"
+      ],
+      "default": 0
+    },
+    {
+      "key": "choke",
+      "name": "Choke",
+      "options": [
+        "OFF",
+        "1",
+        "2",
+        "3",
+        "4"
+      ],
+      "default": 0
+    },
+    {
+      "key": "start",
+      "name": "Start",
+      "display": "string",
+      "default": 0,
+      "min": 0,
+      "max": 1
+    },
+    {
+      "key": "start_prev",
+      "name": "Start Earlier",
+      "type": "trigger",
+      "momentary": true
+    },
+    {
+      "key": "start_next",
+      "name": "Start Later",
+      "type": "trigger",
+      "momentary": true
+    },
+    {
+      "key": "end",
+      "name": "End",
+      "display": "string",
+      "default": 0,
+      "min": 0,
+      "max": 1
+    },
+    {
+      "key": "end_prev",
+      "name": "End Earlier",
+      "type": "trigger",
+      "momentary": true
+    },
+    {
+      "key": "end_next",
+      "name": "End Later",
+      "type": "trigger",
+      "momentary": true
+    },
+    {
+      "key": "source",
+      "name": "Source",
+      "options": [
+        "ONE-SHOTS",
+        "BREAK"
+      ],
+      "default": 0
+    },
+    {
+      "key": "type_1",
+      "name": "Pad 1 Type",
+      "display": "string",
+      "default": 0,
+      "min": 0,
+      "max": 1
+    },
+    {
+      "key": "type_2",
+      "name": "Pad 2 Type",
+      "display": "string",
+      "default": 0,
+      "min": 0,
+      "max": 1
+    },
+    {
+      "key": "type_3",
+      "name": "Pad 3 Type",
+      "display": "string",
+      "default": 0,
+      "min": 0,
+      "max": 1
+    },
+    {
+      "key": "type_4",
+      "name": "Pad 4 Type",
+      "display": "string",
+      "default": 0,
+      "min": 0,
+      "max": 1
+    },
+    {
+      "key": "type_5",
+      "name": "Pad 5 Type",
+      "display": "string",
+      "default": 0,
+      "min": 0,
+      "max": 1
+    },
+    {
+      "key": "type_6",
+      "name": "Pad 6 Type",
+      "display": "string",
+      "default": 0,
+      "min": 0,
+      "max": 1
+    },
+    {
+      "key": "type_7",
+      "name": "Pad 7 Type",
+      "display": "string",
+      "default": 0,
+      "min": 0,
+      "max": 1
+    },
+    {
+      "key": "type_8",
+      "name": "Pad 8 Type",
+      "display": "string",
+      "default": 0,
+      "min": 0,
+      "max": 1
+    },
+    {
+      "key": "file_1",
+      "name": "Pad 1 Sound",
+      "display": "string",
+      "default": 0,
+      "min": 0,
+      "max": 1
+    },
+    {
+      "key": "file_2",
+      "name": "Pad 2 Sound",
+      "display": "string",
+      "default": 0,
+      "min": 0,
+      "max": 1
+    },
+    {
+      "key": "file_3",
+      "name": "Pad 3 Sound",
+      "display": "string",
+      "default": 0,
+      "min": 0,
+      "max": 1
+    },
+    {
+      "key": "file_4",
+      "name": "Pad 4 Sound",
+      "display": "string",
+      "default": 0,
+      "min": 0,
+      "max": 1
+    },
+    {
+      "key": "file_5",
+      "name": "Pad 5 Sound",
+      "display": "string",
+      "default": 0,
+      "min": 0,
+      "max": 1
+    },
+    {
+      "key": "file_6",
+      "name": "Pad 6 Sound",
+      "display": "string",
+      "default": 0,
+      "min": 0,
+      "max": 1
+    },
+    {
+      "key": "file_7",
+      "name": "Pad 7 Sound",
+      "display": "string",
+      "default": 0,
+      "min": 0,
+      "max": 1
+    },
+    {
+      "key": "file_8",
+      "name": "Pad 8 Sound",
+      "display": "string",
+      "default": 0,
+      "min": 0,
+      "max": 1
+    },
+    {
+      "key": "prev_1",
+      "name": "Pad 1 Previous",
+      "type": "trigger",
+      "momentary": true
+    },
+    {
+      "key": "prev_2",
+      "name": "Pad 2 Previous",
+      "type": "trigger",
+      "momentary": true
+    },
+    {
+      "key": "prev_3",
+      "name": "Pad 3 Previous",
+      "type": "trigger",
+      "momentary": true
+    },
+    {
+      "key": "prev_4",
+      "name": "Pad 4 Previous",
+      "type": "trigger",
+      "momentary": true
+    },
+    {
+      "key": "prev_5",
+      "name": "Pad 5 Previous",
+      "type": "trigger",
+      "momentary": true
+    },
+    {
+      "key": "prev_6",
+      "name": "Pad 6 Previous",
+      "type": "trigger",
+      "momentary": true
+    },
+    {
+      "key": "prev_7",
+      "name": "Pad 7 Previous",
+      "type": "trigger",
+      "momentary": true
+    },
+    {
+      "key": "prev_8",
+      "name": "Pad 8 Previous",
+      "type": "trigger",
+      "momentary": true
+    },
+    {
+      "key": "next_1",
+      "name": "Pad 1 Next",
+      "type": "trigger",
+      "momentary": true
+    },
+    {
+      "key": "next_2",
+      "name": "Pad 2 Next",
+      "type": "trigger",
+      "momentary": true
+    },
+    {
+      "key": "next_3",
+      "name": "Pad 3 Next",
+      "type": "trigger",
+      "momentary": true
+    },
+    {
+      "key": "next_4",
+      "name": "Pad 4 Next",
+      "type": "trigger",
+      "momentary": true
+    },
+    {
+      "key": "next_5",
+      "name": "Pad 5 Next",
+      "type": "trigger",
+      "momentary": true
+    },
+    {
+      "key": "next_6",
+      "name": "Pad 6 Next",
+      "type": "trigger",
+      "momentary": true
+    },
+    {
+      "key": "next_7",
+      "name": "Pad 7 Next",
+      "type": "trigger",
+      "momentary": true
+    },
+    {
+      "key": "next_8",
+      "name": "Pad 8 Next",
+      "type": "trigger",
+      "momentary": true
+    },
+    {
+      "key": "lock_1",
+      "name": "Pad 1 Lock",
+      "options": [
+        "Off",
+        "On"
+      ],
+      "default": 0
+    },
+    {
+      "key": "lock_2",
+      "name": "Pad 2 Lock",
+      "options": [
+        "Off",
+        "On"
+      ],
+      "default": 0
+    },
+    {
+      "key": "lock_3",
+      "name": "Pad 3 Lock",
+      "options": [
+        "Off",
+        "On"
+      ],
+      "default": 0
+    },
+    {
+      "key": "lock_4",
+      "name": "Pad 4 Lock",
+      "options": [
+        "Off",
+        "On"
+      ],
+      "default": 0
+    },
+    {
+      "key": "lock_5",
+      "name": "Pad 5 Lock",
+      "options": [
+        "Off",
+        "On"
+      ],
+      "default": 0
+    },
+    {
+      "key": "lock_6",
+      "name": "Pad 6 Lock",
+      "options": [
+        "Off",
+        "On"
+      ],
+      "default": 0
+    },
+    {
+      "key": "lock_7",
+      "name": "Pad 7 Lock",
+      "options": [
+        "Off",
+        "On"
+      ],
+      "default": 0
+    },
+    {
+      "key": "lock_8",
+      "name": "Pad 8 Lock",
+      "options": [
+        "Off",
+        "On"
+      ],
+      "default": 0
+    },
+    {
+      "key": "lib_info",
+      "name": "Library",
+      "display": "string",
+      "default": 0,
+      "min": 0,
+      "max": 1
+    },
+    {
+      "key": "new_kit",
+      "name": "New Kit",
+      "type": "trigger",
+      "momentary": true
+    },
+    {
+      "key": "roll",
+      "name": "Roll",
+      "type": "trigger",
+      "momentary": true
+    },
+    {
+      "key": "wild",
+      "name": "Roll Wildness",
+      "options": [
+        "MILD",
+        "MEDIUM",
+        "WILD"
+      ],
+      "default": 1
+    },
+    {
+      "key": "unlock_all",
+      "name": "Unlock All",
+      "type": "trigger",
+      "momentary": true
+    },
+    {
+      "key": "break_name",
+      "name": "Break",
+      "display": "string",
+      "default": 0,
+      "min": 0,
+      "max": 1
+    },
+    {
+      "key": "break_info",
+      "name": "Break Info",
+      "display": "string",
+      "default": 0,
+      "min": 0,
+      "max": 1
+    },
+    {
+      "key": "lib_name",
+      "name": "Break Library",
+      "display": "string",
+      "default": 0,
+      "min": 0,
+      "max": 1
+    },
+    {
+      "key": "random_break",
+      "name": "Random Break",
+      "type": "trigger",
+      "momentary": true
+    },
+    {
+      "key": "prev_break",
+      "name": "Previous Break",
+      "type": "trigger",
+      "momentary": true
+    },
+    {
+      "key": "next_break",
+      "name": "Next Break",
+      "type": "trigger",
+      "momentary": true
+    },
+    {
+      "key": "lib_next",
+      "name": "Next Library",
+      "type": "trigger",
+      "momentary": true
+    },
+    {
+      "key": "chop",
+      "name": "Chop",
+      "options": [
+        "ON THE BEAT",
+        "ON THE HITS"
+      ],
+      "default": 1
+    },
+    {
+      "key": "tempo",
+      "name": "Tempo",
+      "options": [
+        "AS IS",
+        "MATCH (TUNE)",
+        "MATCH (STRETCH)"
+      ],
+      "default": 1
+    },
+    {
+      "key": "play_break",
+      "name": "Play Whole Break",
+      "type": "trigger",
+      "momentary": true
+    },
+    {
+      "key": "shuffle",
+      "name": "Shuffle Pads",
+      "type": "trigger",
+      "momentary": true
+    },
+    {
+      "key": "speed",
+      "name": "Sample Speed",
+      "options": [
+        "33",
+        "45 > 33"
+      ],
+      "default": 0
+    },
+    {
+      "key": "character",
+      "name": "Character",
+      "options": [
+        "12 BIT 26 kHz",
+        "CLEAN"
+      ],
+      "default": 0
+    },
+    {
+      "key": "pads916",
+      "name": "Pads 9-16",
+      "options": [
+        "MULTI PITCH",
+        "OFF"
+      ],
+      "default": 0
+    },
+    {
+      "key": "save_kit",
+      "name": "Save Kit",
+      "type": "trigger",
+      "momentary": true
+    },
+    {
+      "key": "rescan",
+      "name": "Rescan",
+      "type": "trigger",
+      "momentary": true
+    },
+    {
+      "key": "status",
+      "name": "Status",
+      "display": "string",
+      "default": 0,
+      "min": 0,
+      "max": 1
+    },
+    {
+      "key": "theme",
+      "name": "Look",
+      "options": [
+        "Vintage",
+        "Print Plate",
+        "Night Rack",
+        "Colour Block"
+      ],
+      "default": 0
+    },
+    {
+      "key": "manual_page",
+      "name": "Manual Page",
+      "options": [
+        "START",
+        "PERFORM",
+        "KIT",
+        "SETUP",
+        "HELP"
+      ],
+      "default": 0
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+= START
+# A 12-BIT SAMPLER, THE LATE-80S WAY
+Every sound is sampled at 26 kHz with no filter in front (the highs fold back as grit) and kept as 12 bits.
+Pitch works the old way: a higher pitch plays faster and shorter, a lower one slower and longer.
+- Play pads 1-8 (A01-A08). Pads 9-16 play the selected pad at 8 pitches (MULTI PITCH).
+- PERFORM: 8 faders for the 8 pads. TUNE, DECAY, LEVEL or FILTER picks what they move.
+- KIT: where the sounds come from. ONE-SHOTS from your folders, or a BREAK chopped across the pads.
+- Start: open KIT and tap NEW KIT or ROLL. Then play.
+
+= PERFORM
+# THE FADERS
+Tap TUNE, DECAY, LEVEL or FILTER: the faders jump to that setting of each pad.
+- TUNE: -12 to +12 semitones. Pitch changes the length too, as on the old machines.
+- DECAY: shortens the tail. FULL lets the whole sound play.
+- LEVEL: each pad's volume. All the way down is off.
+- FILTER: the cutoff of a DYNAMIC pad. Pads 1-2 are DYNAMIC, 3-6 FIXED and 7-8 OFF to start with.
+Tap a pad below the faders to hear it and select it. PROGRAM shows the selected pad.
+
+= KIT
+# WHERE THE SOUNDS COME FROM
+ONE-SHOTS: a DRUM ONE SHOTS folder on any drive (MPC TOOLS makes one with MAKE DRUM FOLDER), or the folders
+listed in Potential1200/folders.txt, else the drum sounds in your Expansions and Samples.
+- Each pad has a type (KICK, SNARE, HAT ...). Its arrows step through that type. L locks the pad.
+- NEW KIT: new sounds on every unlocked pad. ROLL: MILD, MEDIUM or WILD changes to sounds and settings.
+BREAK: a break from your DRUM BREAKS LIBRARY, cut into 8 on the beat or on the hits.
+- TEMPO: AS IS, MATCH (TUNE) the old way (faster is higher), or MATCH (STRETCH) to keep the pitch.
+
+= SETUP
+# SOUND AND SAVING
+- SAMPLE SPEED 45 > 33: the old record trick. The sound is taken fast and slowed back, darker and crunchier.
+- CHARACTER CLEAN: no 12-bit or 26 kHz, to hear the difference.
+- PADS 9-16: MULTI PITCH plays the selected pad at 0 2 3 5 7 8 10 12 semitones, or OFF.
+- SAVE KIT: the 8 pads as you hear them, as an MPC drum program in Potential1200/Kits.
+- PROGRAM: STRETCH keeps a pad's length when you tune it. START and END trim it. CHOKE groups cut each other.
+
+= HELP
+# IF SOMETHING IS MISSING
+- No one-shots: make a drum folder in MPC TOOLS (Plugins tab), then tap RESCAN on SETUP.
+- No breaks: a folder called DRUM BREAKS LIBRARY at the top of a drive, then RESCAN.
+- A sound that will not load shows CAN'T READ on the status line. WAV, AIFF, FLAC and MP3 work.
+- The mix is mono, like the old machines. Each pad plays one sound at a time.
+Potential1200 is part of the PotentialSuite. Ideas and fixes are welcome on GitHub.
