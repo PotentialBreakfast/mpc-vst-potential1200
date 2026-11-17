@@ -89,3 +89,10 @@ The [install guide](INSTALL-GUIDE.md) goes through it step by step. In short, on
 The full [PotentialSuite manual](https://github.com/PotentialBreakfast/potential-plugins/blob/main/MANUAL.md) covers every plugin. [MPC TOOLS](https://github.com/PotentialBreakfast/mpc-tools) installs and updates them from your computer.
 
 [Build it yourself](BUILD.md) · [Contributing](CONTRIBUTING.md) · [Third-party code](THIRD_PARTY.md) · [Changelog](CHANGELOG.md)
+
+---
+
+## Tested on
+
+MPC One (Gen1) on standard Akai firmware 3.10.1 and on the latest HAKAI firmware (USB-boot method). Gen2 64-bit builds pass Akai's checks but have had limited real-device testing so far.
+
