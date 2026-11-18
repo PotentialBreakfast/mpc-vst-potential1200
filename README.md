@@ -59,9 +59,9 @@ You don't have to type any paths.
 
 WAV, AIFF, FLAC and MP3 files are read. After adding sounds, tap **RESCAN** on the SETUP page.
 
-## Four looks
+## Five looks
 
-**Vintage** (the default: warm grey panel, cream keys, amber display), **Print Plate**, **Night Rack** and **Colour Block**. Tap one on the SETUP page. The new look shows the next time the plugin loads: take it off the track and add it again, or load your project again. Your choice is kept on your MPC for every project.
+**Vintage** (the default: warm grey panel, cream keys, amber display), **Print Plate**, **Night Rack**, **Colour Block** and **Hi-Fi** (PotentialBox's look: walnut cheeks, a brushed charcoal faceplate, domed knobs lit in the plugin's colour, moulded cream keys, green glass displays). Tap one on the SETUP page. The new look shows the next time the plugin loads: take it off the track and add it again, or load your project again. Your choice is kept on your MPC for every project.
 
 ## Will it work on my MPC?
 
