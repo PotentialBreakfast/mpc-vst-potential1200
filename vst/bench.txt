@@ -1,2 +1,2 @@
-# MPC TOOLS bench (Open MPC tools/bench.c -j) on an MPC One, MPC OS 3.10.1, MPC running, 2026-11-15, Potential1200 1.0.2
-{"plugin": "Potential1200", "instrument": 1, "open_ms": 0.5, "p99_pct": 7.4, "max_pct": 10.7, "threads_pct": 1.5, "verdict": "PASS", "triggers": 32, "trigger_max_pct": 1.7}
+# MPC TOOLS bench (Open MPC tools/bench.c -j) on an MPC One, MPC OS 3.10.1, MPC running, 2026-11-19, Potential1200 1.1.0
+{"plugin": "Potential1200", "instrument": 1, "open_ms": 0.7, "p99_pct": 7.3, "max_pct": 12.0, "threads_pct": 1.7, "verdict": "PASS", "triggers": 32, "trigger_max_pct": 1.9}
